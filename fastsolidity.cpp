@@ -55,7 +55,7 @@ Fast256 FastEVM::_execute(string codebase, string input, account_name caller)
 
     // print("\ntest this: ", caller, " 0x");
     // printhex((char *)&caller, 8);
-    // _caller.from((uint8_t *)&caller, 8);
+    _caller.from((uint8_t *)&caller, 8);
     // print(" ", _caller);
     //print(code_str);
 
@@ -350,8 +350,7 @@ bool FastEVM::executeop(uint8_t **opcode)
         }
         case OP_MUL : 
         {
-            if(!(_spp + 2)->iszero())
-                *(_spp + 2) = *(_spp + 1);
+            *(_spp + 2) = *(_spp + 1) * *(_spp + 2);
             break;
         }
         case OP_AND : 
@@ -387,6 +386,21 @@ bool FastEVM::executeop(uint8_t **opcode)
             checksum256 hash;
             sha256((char *)&((*_memory)[(_spp + 1)->data[0]]), 32, &hash);
             (_spp + 2)->fromchecksum256(hash);
+            break;
+        }
+
+        case OP_LOG0:
+        case OP_LOG1:
+        case OP_LOG2:
+        case OP_LOG3:
+        case OP_LOG4:
+        {
+            /* Not Implemented Yet */
+            break;
+        }
+
+        case OP_JUMPDEST : 
+        {
             break;
         }
 
@@ -440,7 +454,9 @@ bool FastEVM::executeop(uint8_t **opcode)
         }
         default : 
         {
-            eosio_assert(0, "missing implementation on " + codenames[*opcode]);
+            string err = "missing implementation on ";
+            err += codenames[(int)**opcode];
+            eosio_assert(0, err.c_str());
         }
     }
     return false;

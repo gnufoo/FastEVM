@@ -60,14 +60,26 @@ private:
 
     /// @abi table state i64
     struct states_t {
-        uint64_t fastid;
+        // uint64_t fastid;
         checksum256 key;
         checksum256 value;
 
         uint64_t primary_key()const { return Fast256(key).fastid(); }
         // checksum256 byhash()const { return Fast256(key).fastid(); }
-        EOSLIB_SERIALIZE( states_t, (fastid)(key)(value) )
+        // EOSLIB_SERIALIZE( states_t, (fastid)(key)(value) )
+        EOSLIB_SERIALIZE( states_t, (key)(value) )
     };
+
+    // /// @abi table account i64
+    // struct states_t {
+    //     uint64_t fastid;
+    //     checksum256 key;
+    //     checksum256 value;
+
+    //     uint64_t primary_key()const { return Fast256(key).fastid(); }
+    //     // checksum256 byhash()const { return Fast256(key).fastid(); }
+    //     EOSLIB_SERIALIZE( states_t, (fastid)(key)(value) )
+    // };    
 
     typedef eosio::multi_index<N(code), code_t>     code;
     typedef eosio::multi_index<N(state), states_t>  states;
@@ -88,7 +100,7 @@ private:
         else
         {
             state.emplace(_self, [&](auto &s){
-                s.fastid = addr.fastid();
+                // s.fastid = addr.fastid();
                 s.key = addr.tochecksum256();
                 s.value = content.tochecksum256();
             });

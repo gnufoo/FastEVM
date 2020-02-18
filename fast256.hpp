@@ -62,35 +62,16 @@ public:
 		Fast256 myself(*this);
         
         sha256((const char *)&myself, 32, &hash);
-        // eosio::print("\n========fast id dump start==============\n");
-        // printhex((uint8_t *)&myself, 32);
-        // eosio::print(" ");
-        // printhex((uint8_t *)&hash, 32);
-
-        // uint64_t num = 0;
-
-        // for(int i = 0;i < 8; i ++)
-        // {
-        // 	int operand = 56 - i * 8;
-        // 	uint64_t val = (uint64_t)hash.hash[i] << operand;
-        // 	num += val;
-        // 	eosio::print("\n ", i, " ", (uint64_t)hash.hash[i], " ((uint64_t)hash.hash[i] << ", operand, " ");
-        // 	printhex(&val, 8); eosio::print(" "); printhex(&num, 8);
-        // }
 
 		uint64_t serial = ((uint64_t)hash.hash[0] << 56) + 
-            ((uint64_t)hash.hash[1] << 48) + 
-            ((uint64_t)hash.hash[2] << 40) + 
-            ((uint64_t)hash.hash[3] << 32) + 
-            ((uint64_t)hash.hash[4] << 24) + 
-            ((uint64_t)hash.hash[5] << 16) + 
-            ((uint64_t)hash.hash[6] << 8) + 
-            (uint64_t)hash.hash[7];	
-        //serial /= 1000;
+            ((uint64_t)hash.hash[4] << 48) + 
+            ((uint64_t)hash.hash[8] << 40) + 
+            ((uint64_t)hash.hash[12] << 32) + 
+            ((uint64_t)hash.hash[16] << 24) + 
+            ((uint64_t)hash.hash[20] << 16) + 
+            ((uint64_t)hash.hash[24] << 8) + 
+            (uint64_t)hash.hash[28];	
 
-        // eosio::print(" ", serial, " ");
-        // printhex((uint8_t *)&serial, 8);
-        // eosio::print("\n========fast id dump end==============\n");
         return serial;
 	}
 
@@ -189,19 +170,47 @@ public:
 	bool operator >=(const Fast256 &other) const { return compare(other) != -1  ; }
 	bool operator > (const Fast256 &other) const { return compare(other) == 1	; }
 
+	Fast256 operator*(const Fast256 &oprand) const
+	{
+		Fast256 ret[4];
+
+		for(int i = 0; i < 4; i ++)
+		{
+			uint128_t carry = 0;
+			for(int j = 0; j < 4; j ++)
+			{
+				uint128_t temp = (data[i] * oprand.data[j]) + carry;
+				carry = (temp >> 64) & 0xffffffffffffffff;
+				ret[i].data[(j + i) > 3 ? 3 : (j+i)] = (temp & 0xffffffffffffffff);
+			}
+		}
+		return ret[0] + ret[1] + ret[2] + ret[3];
+	}
+
 	Fast256 operator/(const Fast256 &divider) const 
 	{
 		eosio_assert(!divider.iszero(), "divide by zero.");
 		if(*this < divider)
 			return Fast256::Zero();
 
-		if(data[3] && divider.data[3])
+		Fast256 ret;
+
+		for(int i =3; i >= 0 ; i --)
 		{
-			eosio::print(" mine:", data[3], " other:", divider.data[3]);
-			return Fast256(data[3] / divider.data[3]);
+			if(!data[i]) continue;
+			for(int j = i; j >=0; j --)
+			{
+				if(!divider.data[j]) continue;
+				uint64_t reminder = 0;
+				for(int k = i; k >=j; k --)
+				{
+					ret.data[k - j] = (data[k] + reminder) / divider.data[j];
+					reminder = (data[k] + reminder) % divider.data[j];
+				}
+			}
 		}
 
-		return Fast256::One();
+		return ret;
 	}
 
 	void swapendian()
