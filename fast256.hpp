@@ -24,9 +24,19 @@ public:
 		data[1] = data[2] = data[3] = 0;	
 	}
 
+	Fast256(checksum256 v)
+	{
+		fromchecksum256(v);
+	}
+
 	Fast256(const Fast256 &other)
 	{
 		memcpy(data, other.data, sizeof(uint64_t) * 4);
+	}
+
+	Fast256(uint8_t *src, uint64_t size)
+	{
+		from(src, size);
 	}
 
 	static const Fast256 One()
@@ -43,15 +53,74 @@ public:
 
 	void print()
 	{
-		eosio::print("0x");
-		// printhex(&data[3],8);
-		// printhex(&data[2],8);
-		// printhex(&data[1],8);
-		// printhex(&data[0],8);
-		printhex(&data[3],8);
-		printhex(&data[2],8);
-		printhex(&data[1],8);
-		printhex(&data[0],8);
+		eosio::print("0x"); printhex(&data[3],8); printhex(&data[2],8); printhex(&data[1],8); printhex(&data[0],8);
+	}
+
+	uint64_t fastid()
+	{
+		checksum256 hash, hash1;
+		Fast256 myself(*this);
+        
+        sha256((const char *)&myself, 32, &hash);
+        // eosio::print("\n========fast id dump start==============\n");
+        // printhex((uint8_t *)&myself, 32);
+        // eosio::print(" ");
+        // printhex((uint8_t *)&hash, 32);
+
+        // uint64_t num = 0;
+
+        // for(int i = 0;i < 8; i ++)
+        // {
+        // 	int operand = 56 - i * 8;
+        // 	uint64_t val = (uint64_t)hash.hash[i] << operand;
+        // 	num += val;
+        // 	eosio::print("\n ", i, " ", (uint64_t)hash.hash[i], " ((uint64_t)hash.hash[i] << ", operand, " ");
+        // 	printhex(&val, 8); eosio::print(" "); printhex(&num, 8);
+        // }
+
+		uint64_t serial = ((uint64_t)hash.hash[0] << 56) + 
+            ((uint64_t)hash.hash[1] << 48) + 
+            ((uint64_t)hash.hash[2] << 40) + 
+            ((uint64_t)hash.hash[3] << 32) + 
+            ((uint64_t)hash.hash[4] << 24) + 
+            ((uint64_t)hash.hash[5] << 16) + 
+            ((uint64_t)hash.hash[6] << 8) + 
+            (uint64_t)hash.hash[7];	
+        //serial /= 1000;
+
+        // eosio::print(" ", serial, " ");
+        // printhex((uint8_t *)&serial, 8);
+        // eosio::print("\n========fast id dump end==============\n");
+        return serial;
+	}
+
+	checksum256 tochecksum256()
+	{
+		checksum256 ret = *(checksum256 *)data;
+		int i = 32;
+		uint8_t swap;
+		while( -- i >= 16)
+		{
+			swap = ret.hash[i];
+			ret.hash[i] = ret.hash[31 - i];
+			ret.hash[31 - i] = swap;
+		}
+		return ret;
+	}
+
+	Fast256 fromchecksum256(checksum256 src)
+	{
+		checksum256 dest = src;
+		int i = 32;
+		uint8_t swap;
+		while( -- i >= 16)
+		{
+			swap = dest.hash[i];
+			dest.hash[i] = dest.hash[31 - i];
+			dest.hash[31 - i] = swap;
+		}
+		memcpy(data, &dest, 32);
+		return *this;
 	}
 
 	bool iszero() const
@@ -91,10 +160,6 @@ public:
 				}
 				uint64_t lastP = *p;
 				*p = ((uint64_t)(bytes[templen-i] & 0xff) << (8 * (i - 1))) | *p;
-				// eosio::print("\n len=", len, " *p=", *p, " templen=", templen, " i=", i, " (bytes[templen-i] & 0xff)=", (bytes[templen-i] & 0xff), " (8 * (i - 1))=", (8 * (i - 1)), " lastP=", lastP, "\n");
-				// printhex(p, templen);
-				// eosio::print("\n");
-				// print();
 			}
 			if(needBreak)
 				break;
@@ -192,6 +257,45 @@ public:
 		return ret;
 	}
 
+	Fast256 operator&(const Fast256 &mask)
+	{
+		Fast256 ret;
+		ret.data[0] = data[0] & mask.data[0];
+		ret.data[1] = data[1] & mask.data[1];
+		ret.data[2] = data[2] & mask.data[2];
+		ret.data[3] = data[3] & mask.data[3];
+		return ret;
+	}
+
+	Fast256 operator|(const Fast256 &mask)
+	{
+		Fast256 ret;
+		ret.data[0] = data[0] | mask.data[0];
+		ret.data[1] = data[1] | mask.data[1];
+		ret.data[2] = data[2] | mask.data[2];
+		ret.data[3] = data[3] | mask.data[3];
+		return ret;
+	}
+
+	Fast256 operator^(const Fast256 &mask)
+	{
+		Fast256 ret;
+		ret.data[0] = data[0] ^ mask.data[0];
+		ret.data[1] = data[1] ^ mask.data[1];
+		ret.data[2] = data[2] ^ mask.data[2];
+		ret.data[3] = data[3] ^ mask.data[3];
+		return ret;
+	}
+
+	Fast256 operator~()
+	{
+		Fast256 ret;
+		ret.data[0] = ~data[0];
+		ret.data[1] = ~data[1];
+		ret.data[2] = ~data[2];
+		ret.data[3] = ~data[3];
+		return ret;
+	}
 	uint64_t data[4];
 };
 
