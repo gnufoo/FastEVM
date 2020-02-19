@@ -7,7 +7,6 @@
 #include "evmc.hpp"
 #include "fast256.hpp"
 
-using std::string;
 using namespace eosio;
 using namespace std;
 
