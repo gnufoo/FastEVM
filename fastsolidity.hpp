@@ -1,8 +1,8 @@
-#include <eosiolib/asset.hpp>
-#include <eosiolib/eosio.hpp>
+#include <eosio/asset.hpp>
+#include <eosio/eosio.hpp>
 #include <string>
-#include <eosiolib/transaction.hpp>
-#include <eosiolib/crypto.h>
+#include <eosio/transaction.hpp>
+// #include <eosio/crypto.h>
 #include <cmath>
 #include "evmc.hpp"
 #include "fast256.hpp"
@@ -10,7 +10,7 @@
 using std::string;
 using namespace eosio;
 
-class FastEVM : public contract 
+class FastEVM : public contract
 {
 public:
     FastEVM(account_name self, account_name code) :contract(self), _code(code) {
@@ -79,7 +79,7 @@ private:
     //     uint64_t primary_key()const { return Fast256(key).fastid(); }
     //     // checksum256 byhash()const { return Fast256(key).fastid(); }
     //     EOSLIB_SERIALIZE( states_t, (fastid)(key)(value) )
-    // };    
+    // };
 
     typedef eosio::multi_index<N(code), code_t>     code;
     typedef eosio::multi_index<N(state), states_t>  states;

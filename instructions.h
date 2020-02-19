@@ -1,5 +1,5 @@
-  
-/* EVMC: Ethereum Client-VM Connector API.
+/**
+ * EVMC: Ethereum Client-VM Connector API.
  * Copyright 2018-2019 The EVMC Authors.
  * Licensed under the Apache License, Version 2.0.
  */
@@ -174,7 +174,7 @@ enum evmc_opcode
     OP_SELFDESTRUCT = 0xff
 };
 
-const char *codenames[] = 
+const char *codenames[] =
 {
     [OP_STOP] = "OP_STOP",
     [OP_ADD] = "OP_ADD",

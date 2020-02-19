@@ -1,6 +1,9 @@
+#include <eosio/eosio.hpp>
+using namespace eosio;
+
 #ifndef __FAST_256__
 #define __FAST_256__
-#include <eosiolib/print.hpp>
+// #include <eosiolib/print.hpp>
 
 class Fast256
 {
@@ -21,10 +24,10 @@ public:
 	Fast256(uint32_t v)
 	{
 		data[0] = v;
-		data[1] = data[2] = data[3] = 0;	
+		data[1] = data[2] = data[3] = 0;
 	}
 
-	Fast256(checksum256 v)
+	Fast256( checksum256 v )
 	{
 		fromchecksum256(v);
 	}
@@ -60,17 +63,17 @@ public:
 	{
 		checksum256 hash, hash1;
 		Fast256 myself(*this);
-        
+
         sha256((const char *)&myself, 32, &hash);
 
-		uint64_t serial = ((uint64_t)hash.hash[0] << 56) + 
-            ((uint64_t)hash.hash[4] << 48) + 
-            ((uint64_t)hash.hash[8] << 40) + 
-            ((uint64_t)hash.hash[12] << 32) + 
-            ((uint64_t)hash.hash[16] << 24) + 
-            ((uint64_t)hash.hash[20] << 16) + 
-            ((uint64_t)hash.hash[24] << 8) + 
-            (uint64_t)hash.hash[28];	
+		uint64_t serial = ((uint64_t)hash.hash[0] << 56) +
+            ((uint64_t)hash.hash[4] << 48) +
+            ((uint64_t)hash.hash[8] << 40) +
+            ((uint64_t)hash.hash[12] << 32) +
+            ((uint64_t)hash.hash[16] << 24) +
+            ((uint64_t)hash.hash[20] << 16) +
+            ((uint64_t)hash.hash[24] << 8) +
+            (uint64_t)hash.hash[28];
 
         return serial;
 	}
@@ -89,7 +92,7 @@ public:
 		return ret;
 	}
 
-	Fast256 fromchecksum256(checksum256 src)
+	Fast256 fromchecksum256( checksum256 src )
 	{
 		checksum256 dest = src;
 		int i = 32;
@@ -187,9 +190,9 @@ public:
 		return ret[0] + ret[1] + ret[2] + ret[3];
 	}
 
-	Fast256 operator/(const Fast256 &divider) const 
+	Fast256 operator/(const Fast256 &divider) const
 	{
-		eosio_assert(!divider.iszero(), "divide by zero.");
+		check( !divider.iszero(), "divide by zero");
 		if(*this < divider)
 			return Fast256::Zero();
 
