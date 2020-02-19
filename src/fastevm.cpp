@@ -1,11 +1,11 @@
-#include "fastsolidity.hpp"
+#include "fastevm/fastevm.hpp"
 
-/// @abi action
+[[eosio::action]]
 void FastEVM::updatecode(string evmCode)
 {
     require_auth(_self);
 
-    code theCode(_self, _self);
+    code theCode(_self, _self.value);
     auto existing = theCode.find(1);
     if(existing == theCode.end())
     {
@@ -21,14 +21,15 @@ void FastEVM::updatecode(string evmCode)
     }
 }
 
-void FastEVM::createcode(string evmCode, account_name caller)
+[[eosio::action]]
+void FastEVM::createcode(string evmCode, name caller)
 {
     require_auth(_self);
     Fast256 addr = _execute(evmCode, evmCode, caller);
 
     string realcode = evmCode.substr(_copiedoffset * 2, _copiedcodesize * 2);
 
-    code theCode(_self, _self);
+    code theCode(_self, _self.value);
     auto existing = theCode.find(1);
     if(existing == theCode.end())
     {
@@ -44,7 +45,19 @@ void FastEVM::createcode(string evmCode, account_name caller)
     }
 }
 
-Fast256 FastEVM::_execute(string codebase, string input, account_name caller)
+[[eosio::action]]
+void FastEVM::execute(string input, name caller)
+{
+    require_auth(caller);
+
+    code theCode(_self, _self.value);
+    auto existing = theCode.find(1);
+    check(existing != theCode.end(), "you should upload code to execute first.");
+
+    _execute(existing->code, input, caller);
+}
+
+Fast256 FastEVM::_execute(string codebase, string input, name caller)
 {
     /* Initializ code segment. */
     uint64_t code_len = codebase.size();
@@ -54,7 +67,7 @@ Fast256 FastEVM::_execute(string codebase, string input, account_name caller)
 
     // print("\ntest this: ", caller, " 0x");
     // printhex((char *)&caller, 8);
-    _caller.from((uint8_t *)&caller, 8);
+    _caller.from((uint8_t *)&caller.value, 8);
     // print(" ", _caller);
     //print(code_str);
 
@@ -115,17 +128,6 @@ Fast256 FastEVM::_execute(string codebase, string input, account_name caller)
         print("] \n");
     }
     return Fast256::Zero();
-}
-
-void FastEVM::execute(string input, account_name caller)
-{
-    require_auth(caller);
-
-    code theCode(_self, _self);
-    auto existing = theCode.find(1);
-    eosio_assert(existing != theCode.end(), "you should upload code to execute first.");
-
-    _execute(existing->code, input, caller);
 }
 
 bool FastEVM::executeop(uint8_t **opcode)
@@ -383,7 +385,7 @@ bool FastEVM::executeop(uint8_t **opcode)
             print(" sha3:", *(_spp + 1), " ", *(_spp + 2));
             print("\n mem:", (*_memory)[(_spp + 1)->data[0]]);
             checksum256 hash;
-            sha256((char *)&((*_memory)[(_spp + 1)->data[0]]), 32, &hash);
+            hash = sha256((char *)&((*_memory)[(_spp + 1)->data[0]]), 32);
             (_spp + 2)->fromchecksum256(hash);
             break;
         }
@@ -455,37 +457,37 @@ bool FastEVM::executeop(uint8_t **opcode)
         {
             string err = "missing implementation on ";
             err += codenames[(int)**opcode];
-            eosio_assert(0, err.c_str());
+            check(0, err.c_str());
         }
     }
     return false;
 }
 
-#define EOSIO_ABI_EX(TYPE, MEMBERS)                                                                             \
-    extern "C"                                                                                                  \
-    {                                                                                                           \
-        void apply(uint64_t receiver, uint64_t code, uint64_t action)                                           \
-        {                                                                                                       \
-            auto self = receiver;                                                                               \
-            if (code == self || code == N(eosio.token) || code == N(fastecoadmin))                              \
-            {                                                                                                   \
-                TYPE thiscontract(self, code);                                                                  \
-                if (action == N(transfer) && code == N(eosio.token))                                            \
-                {                                                                                               \
-                    /*eosio::execute_action( &thiscontract, &FTS10::xfernotice );*/                             \
-                    return;                                                                                     \
-                }                                                                                               \
-                switch (action)                                                                                 \
-                {                                                                                               \
-                    EOSIO_API(TYPE, MEMBERS)                                                                    \
-                }                                                                                               \
-                /* does not allow destructor of thiscontract to run: eosio_exit(0); */                          \
-            }                                                                                                   \
-            else                                                                                                \
-            {                                                                                                   \
-                /*require_recipient(N(fastshieldio));*/                                                         \
-            }                                                                                                   \
-        }                                                                                                       \
-    }
+// #define EOSIO_ABI_EX(TYPE, MEMBERS)                                                                             \
+//     extern "C"                                                                                                  \
+//     {                                                                                                           \
+//         void apply(uint64_t receiver, uint64_t code, uint64_t action)                                           \
+//         {                                                                                                       \
+//             auto self = receiver;                                                                               \
+//             if (code == self || code == N(eosio.token) || code == N(fastecoadmin))                              \
+//             {                                                                                                   \
+//                 TYPE thiscontract(self, code);                                                                  \
+//                 if (action == N(transfer) && code == N(eosio.token))                                            \
+//                 {                                                                                               \
+//                     /*eosio::execute_action( &thiscontract, &FTS10::xfernotice );*/                             \
+//                     return;                                                                                     \
+//                 }                                                                                               \
+//                 switch (action)                                                                                 \
+//                 {                                                                                               \
+//                     EOSIO_API(TYPE, MEMBERS)                                                                    \
+//                 }                                                                                               \
+//                 /* does not allow destructor of thiscontract to run: eosio_exit(0); */                          \
+//             }                                                                                                   \
+//             else                                                                                                \
+//             {                                                                                                   \
+//                 /*require_recipient(N(fastshieldio));*/                                                         \
+//             }                                                                                                   \
+//         }                                                                                                       \
+//     }
 
-EOSIO_ABI_EX(FastEVM, (updatecode)(execute)(createcode))
+// EOSIO_ABI_EX(FastEVM, (updatecode)(execute)(createcode))

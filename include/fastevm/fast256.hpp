@@ -1,4 +1,5 @@
 #include <eosio/eosio.hpp>
+#include <eosio/crypto.hpp>
 
 using namespace eosio;
 
@@ -61,19 +62,19 @@ public:
 
 	uint64_t fastid()
 	{
-		checksum256 hash, hash1;
+		checksum256 hash;
 		Fast256 myself(*this);
 
-        sha256((const char *)&myself, 32, &hash);
+        hash = sha256((const char *)&myself, 32);
 
-		uint64_t serial = ((uint64_t)hash.hash[0] << 56) +
-            ((uint64_t)hash.hash[4] << 48) +
-            ((uint64_t)hash.hash[8] << 40) +
-            ((uint64_t)hash.hash[12] << 32) +
-            ((uint64_t)hash.hash[16] << 24) +
-            ((uint64_t)hash.hash[20] << 16) +
-            ((uint64_t)hash.hash[24] << 8) +
-            (uint64_t)hash.hash[28];
+		uint64_t serial = ((uint64_t)hash.data()[0] << 56) +
+            ((uint64_t)hash.data()[4] << 48) +
+            ((uint64_t)hash.data()[8] << 40) +
+            ((uint64_t)hash.data()[12] << 32) +
+            ((uint64_t)hash.data()[16] << 24) +
+            ((uint64_t)hash.data()[20] << 16) +
+            ((uint64_t)hash.data()[24] << 8) +
+            (uint64_t)hash.data()[28];
 
         return serial;
 	}
@@ -85,9 +86,9 @@ public:
 		uint8_t swap;
 		while( -- i >= 16)
 		{
-			swap = ret.hash[i];
-			ret.hash[i] = ret.hash[31 - i];
-			ret.hash[31 - i] = swap;
+			swap = ret.data()[i];
+			ret.data()[i] = ret.data()[31 - i];
+			ret.data()[31 - i] = swap;
 		}
 		return ret;
 	}
@@ -99,9 +100,9 @@ public:
 		uint8_t swap;
 		while( -- i >= 16)
 		{
-			swap = dest.hash[i];
-			dest.hash[i] = dest.hash[31 - i];
-			dest.hash[31 - i] = swap;
+			swap = dest.data()[i];
+			dest.data()[i] = dest.data()[31 - i];
+			dest.data()[31 - i] = swap;
 		}
 		memcpy(data, &dest, 32);
 		return *this;

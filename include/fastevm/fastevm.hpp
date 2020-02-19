@@ -9,31 +9,43 @@
 
 using std::string;
 using namespace eosio;
+using namespace std;
 
 class FastEVM : public contract
 {
 public:
-    FastEVM( name self, name code) :contract(self), _code(code) {
-        _stack = new Fast256[1024];
-        memset(_stack, 0, 1024 * sizeof(Fast256));
-        _spp = &_stack[1023];
-        _memory = new vector<Fast256>();
-        _memory->reserve(256);
-        _memorysize = 256;
-    }
+    FastEVM(name receiver, name code, datastream<const char*> ds)
+      : contract{receiver, code, ds}, _self(receiver)//, _table{receiver, receiver.value}
+      {
+            _stack = new Fast256[1024];
+            memset(_stack, 0, 1024 * sizeof(Fast256));
+            _spp = &_stack[1023];
+            _memory = new vector<Fast256>();
+            _memory->reserve(256);
+            _memorysize = 256;
+      }
+    // FastEVM( name self, name code) :contract(self), _code(code) {
+    //     _stack = new Fast256[1024];
+    //     memset(_stack, 0, 1024 * sizeof(Fast256));
+    //     _spp = &_stack[1023];
+    //     _memory = new vector<Fast256>();
+    //     _memory->reserve(256);
+    //     _memorysize = 256;
+    // }
 
     /// @abi action
     // for the first purpose testing envorinment.
-    void updatecode(string code);
+    [[eosio::action]] void updatecode(string code);
 
     /// @abi action
-    void execute( string input, name caller );
+    [[eosio::action]] void execute( string input, name caller );
 
     /// @abi action
-    void createcode( string code, name caller );
+    [[eosio::action]] void createcode( string code, name caller );
 
 private:
      name _code;
+     name _self;
 
     Fast256 _execute( string code, string input, name caller);
 
@@ -51,7 +63,7 @@ private:
 
     Fast256 _caller;
     /// @abi table code i64
-    struct code_t {
+    struct [[eosio::table]] code_t {
         string code;
 
         uint64_t primary_key()const { return 1; }
@@ -59,7 +71,7 @@ private:
     };
 
     /// @abi table state i64
-    struct states_t {
+    struct [[eosio::table]] states_t {
         // uint64_t fastid;
         checksum256 key;
         checksum256 value;
@@ -89,7 +101,7 @@ private:
     void setstate(Fast256 addr, Fast256 content)
     {
         print("\nset stat: ", addr, + " ", addr.fastid());
-        states state(_self, _self);
+        states state(_self, _self.value);
         auto ite = state.find(addr.fastid());
         if(ite != state.end())
         {
@@ -109,7 +121,7 @@ private:
 
     Fast256 getstate(Fast256 addr)
     {
-        states state(_self, _self);
+        states state(_self, _self.value);
         auto ite = state.find(addr.fastid());
         if(ite == state.end())
             return Fast256::Zero();
@@ -133,7 +145,7 @@ private:
     {
         uint64_t offset = dest - _codebytes;
         print("offset :", offset, " _codelen: ", _codelen);
-        eosio_assert(offset < _codelen, "invalid jumpi instruction.");
+        check(offset < _codelen, "invalid jumpi instruction.");
         /* Need to check if it is actually landed on the destination, could be just easily the see if the destination is JUMPDEST or not. */
         return dest;
     }
