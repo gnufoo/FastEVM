@@ -56,7 +56,7 @@ function fastid(eosname)
 			+ (BigInt(buff[16]) << BigInt(24))
 			+ (BigInt(buff[20]) << BigInt(16))
 			+ (BigInt(buff[24]) << BigInt(8))
-			+ (BigInt(buff[28]) << BigInt(0)) 
+			+ (BigInt(buff[28]) << BigInt(0))
 	// console.log(serial.toString());
 	return serial.toString();
 }
@@ -78,14 +78,14 @@ switch(cmd)
 {
 	case "getfastid":
 	{
-		if(args.length != 2)	
+		if(args.length != 2)
 		{
 			console.log("Usage: fastevm getfastid <account>")
 			console.log("Example: fastevm getfastid gnufoognufoo")
 			process.exit(0);
 		}
 		var fid = fastid(args[1])
-		console.log(fid)		
+		console.log(fid)
 		break;
 	}
 

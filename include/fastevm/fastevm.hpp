@@ -13,7 +13,7 @@ using namespace eosio;
 class FastEVM : public contract
 {
 public:
-    FastEVM(account_name self, account_name code) :contract(self), _code(code) {
+    FastEVM( name self, name code) :contract(self), _code(code) {
         _stack = new Fast256[1024];
         memset(_stack, 0, 1024 * sizeof(Fast256));
         _spp = &_stack[1023];
@@ -27,15 +27,15 @@ public:
     void updatecode(string code);
 
     /// @abi action
-    void execute(string input, account_name caller);
+    void execute( string input, name caller );
 
     /// @abi action
-    void createcode(string code, account_name caller);
+    void createcode( string code, name caller );
 
 private:
-    account_name _code;
+     name _code;
 
-    Fast256 _execute(string code, string input, account_name caller);
+    Fast256 _execute( string code, string input, name caller);
 
     Fast256 *_spp;
     Fast256 *_param;
@@ -81,8 +81,8 @@ private:
     //     EOSLIB_SERIALIZE( states_t, (fastid)(key)(value) )
     // };
 
-    typedef eosio::multi_index<N(code), code_t>     code;
-    typedef eosio::multi_index<N(state), states_t>  states;
+    typedef eosio::multi_index<"code"_n, code_t>     code;
+    typedef eosio::multi_index<"state"_n, states_t>  states;
     // typedef   multi_index<N(records), st_record, indexed_by<N(byissue), const_mem_fun<st_record, uint64_t, &st_record::issue_key>>> records;
     // typedef eosio::multi_index<N(state), states_t, indexed_by<N(secondkey), const_mem_fun<states_t, checksum256, &states_t::byhash>>> states;
 

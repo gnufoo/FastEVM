@@ -1,9 +1,9 @@
 #include <eosio/eosio.hpp>
+
 using namespace eosio;
 
 #ifndef __FAST_256__
 #define __FAST_256__
-// #include <eosiolib/print.hpp>
 
 class Fast256
 {

@@ -61,4 +61,4 @@ I've learned the exactly role of a VM inside an public chain structure, and how 
 
 It will work seamlessly with all of our other dapps:
 1, Transit^ integration, Transit^ is a cross chain token protocal which already implemented a bridge between ETH/EOS, once FastEVM integrated with Transit^ it will make ETH users running all of their product on EOS without a notice.
-2, 
+2,

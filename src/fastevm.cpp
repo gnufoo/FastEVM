@@ -21,7 +21,6 @@ void FastEVM::updatecode(string evmCode)
     }
 }
 
-
 void FastEVM::createcode(string evmCode, account_name caller)
 {
     require_auth(_self);
@@ -67,7 +66,7 @@ Fast256 FastEVM::_execute(string codebase, string input, account_name caller)
         uint8_t ch = ((code0 << 4) | code1);
         _codebytes[i / 2] = ch;
     }
-    
+
     /* Initialize input segment. */
     _inputlen = input.size() / 2 - 1;
     _inputbytes = new uint8_t[_inputlen];
@@ -140,26 +139,26 @@ bool FastEVM::executeop(uint8_t **opcode)
             printhex(val, 1);
             *_spp = *val;
             break;
-        } 
-        case OP_PUSH2 : 
-        case OP_PUSH3 : 
-        case OP_PUSH4 : 
-        case OP_PUSH5 : 
-        case OP_PUSH6 : 
-        case OP_PUSH7 : 
-        case OP_PUSH8 : 
-        case OP_PUSH9 : 
-        case OP_PUSH10 : 
-        case OP_PUSH11 : 
-        case OP_PUSH12 : 
-        case OP_PUSH13 : 
-        case OP_PUSH14 : 
-        case OP_PUSH15 : 
-        case OP_PUSH16 : 
-        case OP_PUSH17 : 
-        case OP_PUSH18 : 
-        case OP_PUSH19 : 
-        case OP_PUSH20 : 
+        }
+        case OP_PUSH2 :
+        case OP_PUSH3 :
+        case OP_PUSH4 :
+        case OP_PUSH5 :
+        case OP_PUSH6 :
+        case OP_PUSH7 :
+        case OP_PUSH8 :
+        case OP_PUSH9 :
+        case OP_PUSH10 :
+        case OP_PUSH11 :
+        case OP_PUSH12 :
+        case OP_PUSH13 :
+        case OP_PUSH14 :
+        case OP_PUSH15 :
+        case OP_PUSH16 :
+        case OP_PUSH17 :
+        case OP_PUSH18 :
+        case OP_PUSH19 :
+        case OP_PUSH20 :
         case OP_PUSH21 :
         case OP_PUSH22 :
         case OP_PUSH23 :
@@ -189,7 +188,7 @@ bool FastEVM::executeop(uint8_t **opcode)
             //     uint64_t offset = (8 - (temp % 8));
             //     uint64_t bits = temp % 8;
             //     uint64_t v = (val[i] & (uint64_t)(((uint64_t)0x1 << (temp * 8)) - 1));
-            //     // uint64_t v = val[i] >> offset 
+            //     // uint64_t v = val[i] >> offset
             //     // if(temp < 8)
             //     //      v = v >> ((8 - temp) * 8);
             //     print(" (", v, ", ", val[i], ", ", (uint64_t)(((uint64_t)0x1 << (temp * 8)) - 1), ", ", temp, ") ");
@@ -203,7 +202,7 @@ bool FastEVM::executeop(uint8_t **opcode)
             *(_spp) = _codelen;
             break;
         }
-        case OP_MSTORE : 
+        case OP_MSTORE :
         {
             Fast256 addr(*(_spp + 1));
             Fast256 val(*(_spp + 2));
@@ -219,7 +218,7 @@ bool FastEVM::executeop(uint8_t **opcode)
             *(_spp + 1) = (*_memory)[(_spp + 1)->data[0]];
             break;
         }
-        case OP_CALLER : 
+        case OP_CALLER :
         {
             *(_spp) = _caller;
             // checksum256 test;
@@ -235,17 +234,17 @@ bool FastEVM::executeop(uint8_t **opcode)
             *_spp = _inputlen;
             break;
         }
-        case OP_LT : 
+        case OP_LT :
         {
             *(_spp + 2) = *(_spp + 1) < *(_spp + 2) ? Fast256::One() : Fast256::Zero();
             break;
         }
-        case OP_GT : 
+        case OP_GT :
         {
             *(_spp + 2) = *(_spp + 1) > *(_spp + 2) ? Fast256::One() : Fast256::Zero();
             break;
         }
-        case OP_EQ : 
+        case OP_EQ :
         {
             *(_spp + 2) = *(_spp + 1) == *(_spp + 2) ? Fast256::One() : Fast256::Zero();
             break;
@@ -267,7 +266,7 @@ bool FastEVM::executeop(uint8_t **opcode)
             (*opcode) = validate(_codebytes + (_spp + 1)->data[0]);
             break;
         }
-        case OP_JUMP : 
+        case OP_JUMP :
         {
             (*opcode) = validate(_codebytes + (_spp + 1)->data[0]);
             break;
@@ -290,11 +289,11 @@ bool FastEVM::executeop(uint8_t **opcode)
                 // uint64_t valid = _inputlen - offset.data[0];
             }
 
-            (_spp + 1)->swapendian();         
+            (_spp + 1)->swapendian();
             break;
         }
 
-        case OP_CODECOPY : 
+        case OP_CODECOPY :
         {
             uint8_t *dest = (uint8_t *)&(*_memory)[(_spp + 1)->data[0]];
             uint8_t *codesrc = _codebytes + (_spp + 2)->data[0];
@@ -319,12 +318,12 @@ bool FastEVM::executeop(uint8_t **opcode)
             *(_spp + 2) = (_spp + 2)->iszero() ? Fast256::Zero() : *(_spp + 1) / *(_spp + 2);
             break;
         }
-        case OP_CALLVALUE : 
+        case OP_CALLVALUE :
         {
             *(_spp) = Fast256::Zero();
             break;
         }
-        case OP_ADD : 
+        case OP_ADD :
         {
             *(_spp + 2) = *(_spp + 1) + *(_spp + 2);
             break;
@@ -337,7 +336,7 @@ bool FastEVM::executeop(uint8_t **opcode)
             print("\n exp:", *(_spp + 1), " ", *(_spp + 2));
             break;
         }
-        case OP_SSTORE : 
+        case OP_SSTORE :
         {
             print("\n store: ", *(_spp + 1), " ", *(_spp + 2));
             setstate(*(_spp + 1), *(_spp + 2));
@@ -348,27 +347,27 @@ bool FastEVM::executeop(uint8_t **opcode)
             *(_spp + 1) = getstate(*(_spp + 1));
             break;
         }
-        case OP_MUL : 
+        case OP_MUL :
         {
             *(_spp + 2) = *(_spp + 1) * *(_spp + 2);
             break;
         }
-        case OP_AND : 
+        case OP_AND :
         {
             *(_spp + 2) = *(_spp + 1) & *(_spp + 2);
             break;
         }
-        case OP_OR : 
+        case OP_OR :
         {
             *(_spp + 2) = *(_spp + 1) | *(_spp + 2);
             break;
         }
-        case OP_NOT : 
+        case OP_NOT :
         {
             *(_spp + 1) = ~*(_spp + 1);
             break;
         }
-        case OP_SUB : 
+        case OP_SUB :
         {
             *(_spp + 2) = *(_spp + 1) - *(_spp + 2);
             break;
@@ -376,10 +375,10 @@ bool FastEVM::executeop(uint8_t **opcode)
         case OP_POP :
         {
             print(" pop:", *_spp);
-            //_spp++; 
+            //_spp++;
             break;
         }
-        case OP_SHA3 : 
+        case OP_SHA3 :
         {
             print(" sha3:", *(_spp + 1), " ", *(_spp + 2));
             print("\n mem:", (*_memory)[(_spp + 1)->data[0]]);
@@ -399,7 +398,7 @@ bool FastEVM::executeop(uint8_t **opcode)
             break;
         }
 
-        case OP_JUMPDEST : 
+        case OP_JUMPDEST :
         {
             break;
         }
@@ -448,11 +447,11 @@ bool FastEVM::executeop(uint8_t **opcode)
             *(_spp) = *(_spp + slot);
             break;
         }
-        case OP_RETURN : 
+        case OP_RETURN :
         {
             return true;
         }
-        default : 
+        default :
         {
             string err = "missing implementation on ";
             err += codenames[(int)**opcode];

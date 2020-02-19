@@ -1,6 +1,6 @@
 /**
- *  new/delete operator overloading for eosio smart contract ( on dawn2.x )
- * 
+ * new/delete operator overloading for eosio smart contract ( on dawn2.x )
+ *
  * @copyright Mithrilcoin.io
  */
 #ifndef __EOS_MEM_WRAPPER_H__
