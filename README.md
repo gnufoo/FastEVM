@@ -13,9 +13,13 @@ Fast EVM is a EOSIO based software that store & executes solidity byte codes tha
 ## Building the code
 
 `cd FastEVM`
+
 `makedir build`
+
 `cd build`
+
 `cmake ..`
+
 `make`
 
 ## Create contract account
