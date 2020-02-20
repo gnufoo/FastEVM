@@ -47,7 +47,6 @@ function fastid(eosname)
 
 	//var ib = idhash.match(/(.{1,2})/g).reverse().join('')
 	var buff = Buffer.concat([Buffer.from(idhash, 'hex')], 32);
-	//console.log(buff);
 	var serial = BigInt(0);
 	serial =  (BigInt(buff[0]) << BigInt(56))
 			+ (BigInt(buff[4]) << BigInt(48))

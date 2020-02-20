@@ -22,6 +22,15 @@ void FastEVM::updatecode(string evmCode)
 }
 
 [[eosio::action]]
+void FastEVM::raw(string transaction, name caller)
+{
+    uint64_t i = 2;
+    uint8_t *trx_bytes = string2code(transaction, 2);
+    printhex(trx_bytes, transaction.size()/2 - 1);
+    /* serialize eth transaction code goes here. */
+}
+
+[[eosio::action]]
 void FastEVM::createcode(string evmCode, name caller)
 {
     require_auth(_self);
@@ -63,13 +72,9 @@ Fast256 FastEVM::_execute(string codebase, string input, name caller)
     uint64_t code_len = codebase.size();
     const char * code_str = codebase.c_str();
     _codelen = code_len / 2 - 1;
-    _codebytes = new uint8_t[_codelen];
+    _codebytes = string2code(codebase);
 
-    // print("\ntest this: ", caller, " 0x");
-    // printhex((char *)&caller, 8);
     _caller.from((uint8_t *)&caller.value, 8);
-    // print(" ", _caller);
-    //print(code_str);
 
     for(uint64_t i = 0; i < code_len; i += 2)
     {
@@ -185,19 +190,6 @@ bool FastEVM::executeop(uint8_t **opcode)
             uint64_t temp = numBytes;
             _spp->reset();
             _spp->from(val8, numBytes);
-            // for(int i = 0; i < numQwords; i ++)
-            // {
-            //     uint64_t offset = (8 - (temp % 8));
-            //     uint64_t bits = temp % 8;
-            //     uint64_t v = (val[i] & (uint64_t)(((uint64_t)0x1 << (temp * 8)) - 1));
-            //     // uint64_t v = val[i] >> offset
-            //     // if(temp < 8)
-            //     //      v = v >> ((8 - temp) * 8);
-            //     print(" (", v, ", ", val[i], ", ", (uint64_t)(((uint64_t)0x1 << (temp * 8)) - 1), ", ", temp, ") ");
-            //     _spp->rappend64(v);
-            //     //_spp->data[i] = v;
-            //     temp -= 8;
-            // }
             break;
         }
         case OP_CODESIZE : {
@@ -210,7 +202,6 @@ bool FastEVM::executeop(uint8_t **opcode)
             Fast256 val(*(_spp + 2));
             calculateMemory(addr.data[0]);
             (*_memory)[addr.data[0]] = val;
-            //print(*_spp, " ", (*_memory)[addr.data[0]], " ", addr.data[0]);
             break;
         }
         case OP_MLOAD :
@@ -223,12 +214,6 @@ bool FastEVM::executeop(uint8_t **opcode)
         case OP_CALLER :
         {
             *(_spp) = _caller;
-            // checksum256 test;
-            // sha256((const char *)&_caller, 32, &test);
-            // Fast256 out(test);
-            // printhex((uint8_t*)&_caller, 32);
-            // print(" caller hash:");
-            // printhex((uint8_t*)&out, 32);
             break;
         }
         case OP_CALLDATASIZE :
@@ -382,12 +367,15 @@ bool FastEVM::executeop(uint8_t **opcode)
         }
         case OP_SHA3 :
         {
-            print(" sha3:", *(_spp + 1), " ", *(_spp + 2));
-            print("\n mem:", (*_memory)[(_spp + 1)->data[0]]);
             checksum256 hash;
+            print("seed: ", (*_memory)[(_spp + 1)->data[0]], "\n");
+            printhex(&(*_memory)[(_spp + 1)->data[0]], 32);
             hash = sha256((char *)&((*_memory)[(_spp + 1)->data[0]]), 32);
+            print("\n");
+            printhex(&hash, 32);
             (_spp + 2)->fromchecksum256(hash);
-            print("complete sha3.", hash);
+            print("\n");
+            printhex((_spp + 2), 32);
             break;
         }
 

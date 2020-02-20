@@ -23,17 +23,8 @@ public:
             _memory->reserve(256);
             _memorysize = 256;
       }
-    // FastEVM( name self, name code) :contract(self), _code(code) {
-    //     _stack = new Fast256[1024];
-    //     memset(_stack, 0, 1024 * sizeof(Fast256));
-    //     _spp = &_stack[1023];
-    //     _memory = new vector<Fast256>();
-    //     _memory->reserve(256);
-    //     _memorysize = 256;
-    // }
 
     /// @abi action
-    // for the first purpose testing envorinment.
     [[eosio::action]] void updatecode(string code);
 
     /// @abi action
@@ -41,6 +32,9 @@ public:
 
     /// @abi action
     [[eosio::action]] void createcode( string code, name caller );
+
+    /// @abi action
+    [[eosio::action]] void raw(string transaction, name caller);
 
 private:
      name _code;
@@ -94,12 +88,10 @@ private:
 
     typedef eosio::multi_index<"code"_n, code_t>     code;
     typedef eosio::multi_index<"state"_n, states_t>  states;
-    // typedef   multi_index<N(records), st_record, indexed_by<N(byissue), const_mem_fun<st_record, uint64_t, &st_record::issue_key>>> records;
-    // typedef eosio::multi_index<N(state), states_t, indexed_by<N(secondkey), const_mem_fun<states_t, checksum256, &states_t::byhash>>> states;
 
     void setstate(Fast256 addr, Fast256 content)
     {
-        print("\nset stat: ", addr, + " ", addr.fastid());
+        // print("\nset stat: ", addr, + " ", addr.fastid(), _self, _self.value);
         states state(_self, _self.value);
         auto ite = state.find(addr.fastid());
         if(ite != state.end())
@@ -140,12 +132,31 @@ private:
         }
     }
 
+    uint8_t *string2code(string str, int offset = 0)
+    {
+        const char * code_str = str.c_str();
+        size_t len = str.size();
+
+        auto retlen = len / 2 - 1;
+        uint8_t *ret = new uint8_t[retlen];
+
+        for(uint64_t i = offset; i < len; i += 2)
+        {
+            const char code0 = stringtobyte(code_str[i + 0]);
+            const char code1 = stringtobyte(code_str[i + 1]);
+
+            uint8_t ch = ((code0 << 4) | code1);
+            ret[(i - offset) / 2] = ch;
+        }
+        return ret;
+    }
+
     uint8_t *validate(uint8_t *dest)
     {
         uint64_t offset = dest - _codebytes;
         print("offset :", offset, " _codelen: ", _codelen);
         check(offset < _codelen, "invalid jumpi instruction.");
-        /* Need to check if it is actually landed on the destination, could be just easily the see if the destination is JUMPDEST or not. */
+        check(*dest == OP_JUMPDEST, "invalid jump destination.");
         return dest;
     }
 

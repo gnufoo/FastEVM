@@ -19,7 +19,7 @@ cleos push action fastsolidity createcode  '["6060604052604080519081016040528060
 #cleos get table fastsolidity fastsolidity code
 #cleos push action fastsolidity execute '["0xa9059cbb0000000000000000000000005f703e2e972cd28a968150ccd2b66f9f9f5d538d0000000000000000000000000000000000000000000000000000000000000d05","gnufoognufoo"]' -p gnufoognufoo
 #																			000000000000000000000000c9af057b26bc15e0
-cleos push action fastsolidity execute '["0xa9059cbb000000000000000000000000000000000000000000000000e015bc267b05afc90000000000000000000000000000000000000000000000000000000000000d05","eosio"]' -p eosio
+cleos push action fastsolidity execute '["0xa9059cbb00000000000000000000000000000000000000000000000040e9d29351baf46400000000000000000000000000000000000000000000000000000000000003e8","eosio"]' -p eosio
 cleos get table fastsolidity fastsolidity state
 # cleos set account permission fasttransit1 burn '{"threshold": 1,"keys": [{"key":"EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV", "weight":1}],"accounts": []}' active -p fasttransit1
 # cleos set action permission fasttransit1 fasttransit1 burn burn

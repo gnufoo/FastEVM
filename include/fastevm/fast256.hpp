@@ -68,14 +68,19 @@ public:
         hash = sha256((const char *)&myself, 32);
         auto arr = hash.extract_as_byte_array();
 
-		uint64_t serial = ((uint64_t)arr[0] << 56) +
-            ((uint64_t)arr[4] << 48) +
-            ((uint64_t)arr[8] << 40) +
-            ((uint64_t)arr[12] << 32) +
-            ((uint64_t)arr[16] << 24) +
-            ((uint64_t)arr[20] << 16) +
-            ((uint64_t)arr[24] << 8) +
-            (uint64_t)arr[28];
+        eosio::print("\n dump fastid: ", hash, "\n");
+        printhex(arr.data(), 32);
+        eosio::print("\n");
+        printhex((uint8_t *)&myself, 32);
+
+		uint64_t serial = ((uint64_t)arr.data()[0] << 56) +
+            ((uint64_t)arr.data()[4] << 48) +
+            ((uint64_t)arr.data()[8] << 40) +
+            ((uint64_t)arr.data()[12] << 32) +
+            ((uint64_t)arr.data()[16] << 24) +
+            ((uint64_t)arr.data()[20] << 16) +
+            ((uint64_t)arr.data()[24] << 8) +
+            (uint64_t)arr.data()[28];
 
         return serial;
 	}
@@ -83,35 +88,17 @@ public:
 	checksum256 tochecksum256()
 	{
 		checksum256 ret;// = *(checksum256 *)data;
+
 		memcpy( (char*)ret.data(), data + 2, 16);
 		memcpy( (char*)ret.data() + 16, data, 16);
-		// int i = 32;
-		// uint8_t swap;
-		// while( -- i >= 16)
-		// {
-		// 	swap = ret.data()[i];
-		// 	ret.data()[i] = ret.data()[31 - i];
-		// 	ret.data()[31 - i] = swap;
-		// }
 		return ret;
 	}
 
 	Fast256 fromchecksum256( checksum256 src )
 	{
+		reset();
 		auto arr = src.extract_as_byte_array();
-		// checksum256 dest = src;
-		// int i = 32;
-		// uint8_t swap;
-		// eosio::print("\n");
-		// printhex(&src, 32);
-		// while( -- i >= 16)
-		// {
-		// 	swap = arr[i];
-		// 	eosio::print(" ", swap);
-		// 	dest.data()[i] = dest.data()[31 - i];
-		// 	dest.data()[31 - i] = swap;
-		// }
-		memcpy(data, &arr, 32);
+		from(arr.data(), 32);
 		return *this;
 	}
 
