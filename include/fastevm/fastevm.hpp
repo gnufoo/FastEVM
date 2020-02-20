@@ -10,7 +10,7 @@
 using namespace eosio;
 using namespace std;
 
-class FastEVM : public contract
+CONTRACT FastEVM : public contract
 {
 public:
     FastEVM(name receiver, name code, datastream<const char*> ds)

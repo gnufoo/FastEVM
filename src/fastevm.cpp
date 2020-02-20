@@ -387,6 +387,7 @@ bool FastEVM::executeop(uint8_t **opcode)
             checksum256 hash;
             hash = sha256((char *)&((*_memory)[(_spp + 1)->data[0]]), 32);
             (_spp + 2)->fromchecksum256(hash);
+            print("complete sha3.", hash);
             break;
         }
 
