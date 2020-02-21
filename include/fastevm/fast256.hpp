@@ -94,6 +94,11 @@ public:
 		return ret;
 	}
 
+	size_t tosize()
+	{
+		return data[0];
+	}
+
 	Fast256 fromchecksum256( checksum256 src )
 	{
 		reset();

@@ -26,7 +26,9 @@ void FastEVM::raw(string transaction, name caller)
 {
     uint64_t i = 2;
     uint8_t *trx_bytes = string2code(transaction, 2);
-    printhex(trx_bytes, transaction.size()/2 - 1);
+    // printhex(trx_bytes, transaction.size()/2 - 1);
+    FastRLP decode(trx_bytes, transaction.size()/2 - 1);
+    print(decode);
     /* serialize eth transaction code goes here. */
 }
 

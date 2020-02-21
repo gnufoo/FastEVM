@@ -6,6 +6,7 @@
 #include <cmath>
 #include "evmc.hpp"
 #include "fast256.hpp"
+#include "fastrlp.hpp"
 
 using namespace eosio;
 using namespace std;
