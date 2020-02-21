@@ -36,17 +36,58 @@ struct content_type
 		{
 			printhex(&u.value, 1);
 		}
-		else {
+		else
+		{
 			eosio::print("[");
 			for(auto ite = u.list.begin(); ite != u.list.end(); ite++)
 			{
-				if(ite != u.list.begin()) 
+				if(ite != u.list.begin() && type == 2) 
 					eosio::print(",");
 				ite->print();
 			}
 			eosio::print("]");
 		}
 	};
+
+	uint8_t *tobytes(int len)
+	{
+		check(u.list.size() >= len, "can't to bytes for this element.");
+		uint8_t *ret = new uint8_t[len];
+		for(auto i = 0; i < len; i ++)
+			ret[i] = u.list[i].u.value;
+		
+		return ret;
+	}
+
+	size_t encode(vector<uint8_t>& buff)
+	{
+		int ret = 0;
+		vector<uint8_t> temp;
+		if(type == 0)
+		{
+			temp.push_back(u.value);
+			buff.insert(buff.end(), temp.begin(), temp.end());
+			return 1;
+		}
+		else		
+		{
+			for(auto ite = u.list.begin(); ite != u.list.end(); ite++)
+				ret += ite->encode(temp);
+
+			if(ret > 0x38)
+			{
+				buff.push_back(type == 2 ? 0xf8 : 0x80);
+				buff.push_back(ret);
+			}
+			else
+			{
+				buff.push_back(type == 2 ? (0xbf + ret) : (0x80 + ret));
+			}
+			
+			buff.insert(buff.end(), temp.begin(), temp.end());
+			return ret;
+		}
+	}
 };
 
 class FastRLP
@@ -90,7 +131,7 @@ public:
             uint8_t list_len = (**p) - 0xc0;
             (*p) += list_len + 1;
 
-            content_type ret(1);
+            content_type ret(2);
             uint8_t *list_p = *p;
             while(list_p < *p + list_len)
             	ret.u.list.push_back(parse(&list_p));
@@ -103,7 +144,7 @@ public:
         	Fast256 listlen((*p) + 1, len_of_list_len);
             (*p) += len_of_list_len + 1;
 
-            content_type ret(1);
+            content_type ret(2);
             uint8_t *list_p = *p;
             while(list_p < *p + listlen.tosize())
             {
