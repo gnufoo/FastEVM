@@ -5,3 +5,5 @@ build
 nodeos.log
 dist
 .vscode
+stderr
+nodeos
