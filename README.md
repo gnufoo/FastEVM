@@ -1,32 +1,20 @@
-# Fast EVM
+# FastEVM
 
-Fast EVM is a EOSIO based software that store & executes solidity byte codes that compatible with Ethereum network.
+FastEVM is a EOSIO based software that store & executes solidity byte codes that is compatible with Ethereum network.
 
 # How to build
 
-## Make sure you have latest [eosio.cdt](https://github.com/EOSIO/eosio.cdt) installed.
+Use the latest [eosio.cdt](https://github.com/EOSIO/eosio.cdt)
 
-## Fetching the code
+```
+git clone https://github.com/gnufoo/FastEVM.git
+cd FastEVM
+./scripts/build.sh
+```
 
-`https://github.com/gnufoo/FastEVM.git`
+## Deploy
 
-## Building the code
-
-`cd FastEVM`
-
-`makedir build`
-
-`cd build`
-
-`cmake ..`
-
-`make`
-
-## Create contract account
-
-`cleos create account eosio fastsolidity EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV`
-
-## Deploying to the created account
-
-`cleos set contract fastsolidity ./ FastEVM.wasm FastEVM.abi`
+```
+cleos set contract fastevm ./dist FastEVM.wasm FastEVM.abi
+```
 
