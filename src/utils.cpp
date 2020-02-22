@@ -1,4 +1,4 @@
-void FastEVM::calculateMemory( uint64_t newsize )
+void FastEVM::calculate_memory( uint64_t newsize )
 {
     uint64_t realnewsize = (newsize + 31) / 32 * 32;
     if (realnewsize > _memorysize) {
@@ -8,7 +8,7 @@ void FastEVM::calculateMemory( uint64_t newsize )
     }
 }
 
-uint8_t *FastEVM::string2code( string str, int offset )
+uint8_t *FastEVM::string_to_code( string str, int offset )
 {
     const char * code_str = str.c_str();
     size_t len = str.size();
@@ -18,8 +18,8 @@ uint8_t *FastEVM::string2code( string str, int offset )
 
     for (uint64_t i = offset; i < len; i += 2)
     {
-        const char code0 = stringtobyte(code_str[i + 0]);
-        const char code1 = stringtobyte(code_str[i + 1]);
+        const char code0 = string_to_byte(code_str[i + 0]);
+        const char code1 = string_to_byte(code_str[i + 1]);
 
         uint8_t ch = ((code0 << 4) | code1);
         ret[(i - offset) / 2] = ch;
@@ -36,7 +36,7 @@ uint8_t *FastEVM::validate( uint8_t *dest )
     return dest;
 }
 
-const uint8_t FastEVM::stringtobyte( char c )
+const uint8_t FastEVM::string_to_byte( char c )
 {
     const uint8_t char2hex[] = {
         ['0'] = 0x0, ['1'] = 0x1, ['2'] = 0x2, ['3'] = 0x3,

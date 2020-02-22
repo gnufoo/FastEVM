@@ -139,7 +139,6 @@ public:
     void raw( string transaction, name caller );
 
 private:
-    Fast256 _execute( string code, string input, name caller);
 
     Fast256 *_spp;
     Fast256 *_param;
@@ -152,21 +151,21 @@ private:
     uint64_t _copiedcodesize;
     uint64_t _copiedoffset;
     uint8_t *_codebytes;
-
     Fast256 _caller;
 
     // execute
-    bool executeop(uint8_t **opcode);
+    Fast256 execute_code( string code, string input, name caller );
+    bool execute_op( uint8_t **opcode );
 
     // state
-    void setstate( Fast256 addr, Fast256 content );
-    Fast256 getstate( Fast256 addr );
+    void set_state( Fast256 addr, Fast256 content );
+    Fast256 get_state( Fast256 addr );
 
     // utils
     uint8_t *validate( uint8_t *dest );
-    uint8_t *string2code( string str, int offset = 0 );
-    const uint8_t stringtobyte( char c );
-    void calculateMemory( uint64_t newsize );
+    uint8_t *string_to_code( string str, int offset = 0 );
+    const uint8_t string_to_byte( char c );
+    void calculate_memory( uint64_t newsize );
 };
 
 

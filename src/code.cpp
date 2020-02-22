@@ -19,7 +19,7 @@ void FastEVM::updatecode(string evmCode)
 void FastEVM::raw( string transaction, name caller )
 {
     uint64_t i = 2;
-    uint8_t *trx_bytes = string2code(transaction, 2);
+    uint8_t *trx_bytes = string_to_code(transaction, 2);
     FastRLP decode(trx_bytes, transaction.size()/2 - 1);
     check(decode.data.u.list.size() == 9, "unsupported ETH transaction data.");
     uint8_t v = decode.data.u.list[6].u.value;
@@ -40,7 +40,7 @@ void FastEVM::raw( string transaction, name caller )
 void FastEVM::createcode( string evmCode, name caller )
 {
     require_auth( get_self() );
-    Fast256 addr = _execute( evmCode, evmCode, caller );
+    Fast256 addr = execute_code( evmCode, evmCode, caller );
 
     string realcode = evmCode.substr( _copiedoffset * 2, _copiedcodesize * 2 );
 

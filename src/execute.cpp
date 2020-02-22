@@ -6,23 +6,23 @@ void FastEVM::execute( string input, name caller )
     auto existing = _code.find(1);
     check( existing != _code.end(), "you should upload code to execute first.");
 
-    _execute(existing->code, input, caller);
+    execute_code(existing->code, input, caller);
 }
 
-Fast256 FastEVM::_execute( string codebase, string input, name caller )
+Fast256 FastEVM::execute_code( string codebase, string input, name caller )
 {
     /* Initializ code segment. */
     uint64_t code_len = codebase.size();
     const char * code_str = codebase.c_str();
     _codelen = code_len / 2 - 1;
-    _codebytes = string2code(codebase);
+    _codebytes = string_to_code(codebase);
 
     _caller.from((uint8_t *)&caller.value, 8);
 
     for (uint64_t i = 0; i < code_len; i += 2)
     {
-        const char code0 = stringtobyte(code_str[i + 0]);
-        const char code1 = stringtobyte(code_str[i + 1]);
+        const char code0 = string_to_byte(code_str[i + 0]);
+        const char code1 = string_to_byte(code_str[i + 1]);
 
         uint8_t ch = ((code0 << 4) | code1);
         _codebytes[i / 2] = ch;
@@ -35,8 +35,8 @@ Fast256 FastEVM::_execute( string codebase, string input, name caller )
 
     for(uint64_t i = 2; i < input.size(); i += 2)
     {
-        const char code0 = stringtobyte(input_str[i + 0]);
-        const char code1 = stringtobyte(input_str[i + 1]);
+        const char code0 = string_to_byte(input_str[i + 0]);
+        const char code1 = string_to_byte(input_str[i + 1]);
 
         _inputbytes[i / 2 - 1] = ((code0 << 4) | code1);
 
@@ -53,7 +53,7 @@ Fast256 FastEVM::_execute( string codebase, string input, name caller )
         print(" [", pos, "]", codenames[*op]);//, " ", matrics[*op].stack_height_change);
         int changed = matrics[*op].stack_height_change;
 
-        bool returned = executeop(&op);
+        bool returned = execute_op(&op);
         if (returned)
         {
             //print("\n return: ", *(_spp), *(_spp + 1));
@@ -76,7 +76,7 @@ Fast256 FastEVM::_execute( string codebase, string input, name caller )
     return Fast256::Zero();
 }
 
-bool FastEVM::executeop(uint8_t **opcode)
+bool FastEVM::execute_op(uint8_t **opcode)
 {
     switch(**opcode)
     {
@@ -141,7 +141,7 @@ bool FastEVM::executeop(uint8_t **opcode)
         {
             Fast256 addr(*(_spp + 1));
             Fast256 val(*(_spp + 2));
-            calculateMemory(addr.data[0]);
+            calculate_memory(addr.data[0]);
             (*_memory)[addr.data[0]] = val;
             break;
         }
@@ -266,12 +266,12 @@ bool FastEVM::executeop(uint8_t **opcode)
         case OP_SSTORE :
         {
             print("\n store: ", *(_spp + 1), " ", *(_spp + 2));
-            setstate(*(_spp + 1), *(_spp + 2));
+            set_state(*(_spp + 1), *(_spp + 2));
             break;
         }
         case OP_SLOAD :
         {
-            *(_spp + 1) = getstate(*(_spp + 1));
+            *(_spp + 1) = get_state(*(_spp + 1));
             break;
         }
         case OP_MUL :

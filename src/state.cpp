@@ -1,4 +1,4 @@
-void FastEVM::setstate( Fast256 addr, Fast256 content )
+void FastEVM::set_state( Fast256 addr, Fast256 content )
 {
     // print("\nset stat: ", addr, + " ", addr.fastid(), _self, _self.value);
     auto ite = _state.find(addr.fastid());
@@ -15,7 +15,7 @@ void FastEVM::setstate( Fast256 addr, Fast256 content )
     }
 }
 
-Fast256 FastEVM::getstate( Fast256 addr )
+Fast256 FastEVM::get_state( Fast256 addr )
 {
     auto ite = _state.find( addr.fastid() );
     if (ite == _state.end()) return Fast256::Zero();
