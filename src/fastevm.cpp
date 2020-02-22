@@ -3,26 +3,22 @@
 [[eosio::action]]
 void FastEVM::updatecode(string evmCode)
 {
-    require_auth(_self);
+    require_auth( get_self() );
 
-    code theCode(_self, _self.value);
-    auto existing = theCode.find(1);
-    if(existing == theCode.end())
-    {
-        theCode.emplace(_self, [&](auto &s) {
-            s.code = evmCode;
+    auto existing = _code.find(1);
+    if (existing == _code.end()) {
+        _code.emplace( get_self() , [&](auto &row) {
+            row.code = evmCode;
         });
-    }
-    else
-    {
-        theCode.modify(existing, _self, [&](auto &s){
-            s.code = evmCode;
+    } else {
+        _code.modify( existing,  get_self() , [&](auto &row){
+            row.code = evmCode;
         });
     }
 }
 
 [[eosio::action]]
-void FastEVM::raw(string transaction, name caller)
+void FastEVM::raw( string transaction, name caller )
 {
     uint64_t i = 2;
     uint8_t *trx_bytes = string2code(transaction, 2);
@@ -43,42 +39,37 @@ void FastEVM::raw(string transaction, name caller)
 }
 
 [[eosio::action]]
-void FastEVM::createcode(string evmCode, name caller)
+void FastEVM::createcode( string evmCode, name caller )
 {
-    require_auth(_self);
-    Fast256 addr = _execute(evmCode, evmCode, caller);
+    require_auth( get_self() );
+    Fast256 addr = _execute( evmCode, evmCode, caller );
 
-    string realcode = evmCode.substr(_copiedoffset * 2, _copiedcodesize * 2);
+    string realcode = evmCode.substr( _copiedoffset * 2, _copiedcodesize * 2 );
 
-    code theCode(_self, _self.value);
-    auto existing = theCode.find(1);
-    if(existing == theCode.end())
-    {
-        theCode.emplace(_self, [&](auto &s) {
-            s.code = realcode;
+    auto existing = _code.find(1);
+    if (existing == _code.end()) {
+        _code.emplace(_self, [&](auto & row) {
+            row.code = realcode;
         });
-    }
-    else
-    {
-        theCode.modify(existing, _self, [&](auto &s){
-            s.code = realcode;
+    } else {
+        _code.modify(existing, _self, [&](auto & row){
+            row.code = realcode;
         });
     }
 }
 
 [[eosio::action]]
-void FastEVM::execute(string input, name caller)
+void FastEVM::execute( string input, name caller )
 {
-    require_auth(caller);
+    require_auth( caller );
 
-    code theCode(_self, _self.value);
-    auto existing = theCode.find(1);
-    check(existing != theCode.end(), "you should upload code to execute first.");
+    auto existing = _code.find(1);
+    check( existing != _code.end(), "you should upload code to execute first.");
 
     _execute(existing->code, input, caller);
 }
 
-Fast256 FastEVM::_execute(string codebase, string input, name caller)
+Fast256 FastEVM::_execute( string codebase, string input, name caller )
 {
     /* Initializ code segment. */
     uint64_t code_len = codebase.size();
@@ -88,7 +79,7 @@ Fast256 FastEVM::_execute(string codebase, string input, name caller)
 
     _caller.from((uint8_t *)&caller.value, 8);
 
-    for(uint64_t i = 0; i < code_len; i += 2)
+    for (uint64_t i = 0; i < code_len; i += 2)
     {
         const char code0 = stringtobyte(code_str[i + 0]);
         const char code1 = stringtobyte(code_str[i + 1]);
@@ -116,14 +107,14 @@ Fast256 FastEVM::_execute(string codebase, string input, name caller)
     /* Evaluating bytecodes. */
     uint8_t *op = _codebytes;
     const struct evmc_instruction_metrics *matrics = evmc_get_instruction_metrics_table(EVMC_BERLIN);
-    while(op - _codebytes <= _codelen)
+    while (op - _codebytes <= _codelen)
     {
         int pos = op - _codebytes;
         print(" [", pos, "]", codenames[*op]);//, " ", matrics[*op].stack_height_change);
         int changed = matrics[*op].stack_height_change;
 
         bool returned = executeop(&op);
-        if(returned)
+        if (returned)
         {
             //print("\n return: ", *(_spp), *(_spp + 1));
             return *(_spp + 1);
@@ -134,12 +125,10 @@ Fast256 FastEVM::_execute(string codebase, string input, name caller)
         _spp -= changed;
 
         print(" [");
-        for(Fast256 *it = (_spp + 1); it < _stack + 1024; it ++)
+        for (Fast256 *it = (_spp + 1); it < _stack + 1024; it ++)
         {
-            if(it == (_spp + 1))
-                print(*it);
-            else
-                print(", ", *it);
+            if (it == (_spp + 1)) print(*it);
+            else print(", ", *it);
 
         }
         print("] \n");
@@ -248,7 +237,6 @@ bool FastEVM::executeop(uint8_t **opcode)
             *(_spp + 2) = *(_spp + 1) == *(_spp + 2) ? Fast256::One() : Fast256::Zero();
             break;
         }
-
 
         case OP_ISZERO :
         {
@@ -463,32 +451,3 @@ bool FastEVM::executeop(uint8_t **opcode)
     }
     return false;
 }
-
-// #define EOSIO_ABI_EX(TYPE, MEMBERS)                                                                             \
-//     extern "C"                                                                                                  \
-//     {                                                                                                           \
-//         void apply(uint64_t receiver, uint64_t code, uint64_t action)                                           \
-//         {                                                                                                       \
-//             auto self = receiver;                                                                               \
-//             if (code == self || code == N(eosio.token) || code == N(fastecoadmin))                              \
-//             {                                                                                                   \
-//                 TYPE thiscontract(self, code);                                                                  \
-//                 if (action == N(transfer) && code == N(eosio.token))                                            \
-//                 {                                                                                               \
-//                     /*eosio::execute_action( &thiscontract, &FTS10::xfernotice );*/                             \
-//                     return;                                                                                     \
-//                 }                                                                                               \
-//                 switch (action)                                                                                 \
-//                 {                                                                                               \
-//                     EOSIO_API(TYPE, MEMBERS)                                                                    \
-//                 }                                                                                               \
-//                 /* does not allow destructor of thiscontract to run: eosio_exit(0); */                          \
-//             }                                                                                                   \
-//             else                                                                                                \
-//             {                                                                                                   \
-//                 /*require_recipient(N(fastshieldio));*/                                                         \
-//             }                                                                                                   \
-//         }                                                                                                       \
-//     }
-
-// EOSIO_ABI_EX(FastEVM, (updatecode)(execute)(createcode))

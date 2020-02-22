@@ -2,7 +2,6 @@
 #include <eosio/eosio.hpp>
 #include <string>
 #include <eosio/transaction.hpp>
-// #include <eosio/crypto.h>
 #include <cmath>
 #include "evmc.hpp"
 #include "fast256.hpp"
@@ -11,36 +10,135 @@
 using namespace eosio;
 using namespace std;
 
-CONTRACT FastEVM : public contract
-{
-public:
-    FastEVM(name receiver, name code, datastream<const char*> ds)
-      : contract{receiver, code, ds}, _self(receiver)//, _table{receiver, receiver.value}
-      {
-            _stack = new Fast256[1024];
-            memset(_stack, 0, 1024 * sizeof(Fast256));
-            _spp = &_stack[1023];
-            _memory = new vector<Fast256>();
-            _memory->reserve(256);
-            _memorysize = 256;
-      }
+/**
+ * ## TABLE `code`
+ *
+ * - `{string} code` - FastEVM code
+ *
+ * ### example
+ *
+ * ```json
+ * {
+ *   "code": "..."
+ * }
+ * ```
+ */
+struct [[eosio::table("code"), eosio::contract("fastevm")]] code_row {
+    string code;
 
-    /// @abi action
-    [[eosio::action]] void updatecode(string code);
+    uint64_t primary_key() const { return 1; }
+};
+typedef eosio::multi_index<"code"_n, code_row> code_table;
 
-    /// @abi action
-    [[eosio::action]] void execute( string input, name caller );
+/**
+ * ## TABLE `state`
+ *
+ * - `{checksum256} key` - Checksum256 key
+ * - `{checksum256} value` - Checksum256 value
+ *
+ * ### example
+ *
+ * ```json
+ * {
+ *   "key": "...",
+ *   "value": "..."
+ * }
+ * ```
+ */
+struct [[eosio::table("state"), eosio::contract("fastevm")]] state_row {
+    // uint64_t fastid;
+    checksum256 key;
+    checksum256 value;
 
-    /// @abi action
-    [[eosio::action]] void createcode( string code, name caller );
+    uint64_t primary_key() const { return Fast256(key).fastid(); }
+    // checksum256 byhash()const { return Fast256(key).fastid(); }
+};
+typedef eosio::multi_index<"state"_n, state_row> state_table;
 
-    /// @abi action
-    [[eosio::action]] void raw(string transaction, name caller);
+
+class [[eosio::contract("fastevm")]] FastEVM : public contract {
 
 private:
-     name _code;
-     name _self;
+    // local instances of the multi indexes
+    code_table _code;
+    state_table _state;
 
+public:
+    using contract::contract;
+
+    /**
+     * Construct a new contract given the contract name
+     *
+     * @param {name} receiver - The name of this contract
+     * @param {name} code - The code name of the action this contract is processing.
+     * @param {datastream} ds - The datastream used
+     */
+    FastEVM( name receiver, name code, eosio::datastream<const char*> ds )
+        : contract( receiver, code, ds ),
+            _code( get_self(), get_self().value ),
+            _state( get_self(), get_self().value )
+    {
+        _stack = new Fast256[1024];
+        memset(_stack, 0, 1024 * sizeof(Fast256));
+        _spp = &_stack[1023];
+        _memory = new vector<Fast256>();
+        _memory->reserve(256);
+        _memorysize = 256;
+    }
+
+
+    /**
+     * ## ACTION `updatecode`
+     *
+     * Update code
+     *
+     * - **authority**: `get_self()`
+     * - **ram_payer**: `get_self()`
+     *
+     * ### params
+     *
+     * - `{string} code` - FastEVM code
+     *
+     * ### example
+     *
+     * ```bash
+     * cleos push action fastevm updatecode '["..."]' -p fastevm
+     * ```
+     */
+    [[eosio::action]]
+    void updatecode( string code );
+
+    /**
+     * ## ACTION `execute`
+     *
+     * Execute code
+     *
+     * - **authority**: `*`
+     * - **ram_payer**: N/A
+     *
+     * ### params
+     *
+     * - `{string} code` - FastEVM code
+     * - `{name} caller` - caller account
+     *
+     * ### example
+     *
+     * ```bash
+     * cleos push action fastevm execute '["...", "myaccount"]' -p myaccount
+     * ```
+     */
+    [[eosio::action]]
+    void execute( string input, name caller );
+
+    /// @abi action
+    [[eosio::action]]
+    void createcode( string code, name caller );
+
+    /// @abi action
+    [[eosio::action]]
+    void raw( string transaction, name caller );
+
+private:
     Fast256 _execute( string code, string input, name caller);
 
     Fast256 *_spp;
@@ -56,54 +154,18 @@ private:
     uint8_t *_codebytes;
 
     Fast256 _caller;
-    /// @abi table code i64
-    struct [[eosio::table]] code_t {
-        string code;
 
-        uint64_t primary_key()const { return 1; }
-        EOSLIB_SERIALIZE( code_t, (code) )
-    };
-
-    /// @abi table state i64
-    struct [[eosio::table]] states_t {
-        // uint64_t fastid;
-        checksum256 key;
-        checksum256 value;
-
-        uint64_t primary_key()const { return Fast256(key).fastid(); }
-        // checksum256 byhash()const { return Fast256(key).fastid(); }
-        // EOSLIB_SERIALIZE( states_t, (fastid)(key)(value) )
-        EOSLIB_SERIALIZE( states_t, (key)(value) )
-    };
-
-    // /// @abi table account i64
-    // struct states_t {
-    //     uint64_t fastid;
-    //     checksum256 key;
-    //     checksum256 value;
-
-    //     uint64_t primary_key()const { return Fast256(key).fastid(); }
-    //     // checksum256 byhash()const { return Fast256(key).fastid(); }
-    //     EOSLIB_SERIALIZE( states_t, (fastid)(key)(value) )
-    // };
-
-    typedef eosio::multi_index<"code"_n, code_t>     code;
-    typedef eosio::multi_index<"state"_n, states_t>  states;
 
     void setstate(Fast256 addr, Fast256 content)
     {
         // print("\nset stat: ", addr, + " ", addr.fastid(), _self, _self.value);
-        states state(_self, _self.value);
-        auto ite = state.find(addr.fastid());
-        if(ite != state.end())
-        {
-            state.modify(ite, _self, [&](auto &s){
+        auto ite = _state.find(addr.fastid());
+        if (ite != _state.end()) {
+            _state.modify(ite, _self, [&](auto &s){
                 s.value = content.tochecksum256();
             });
-        }
-        else
-        {
-            state.emplace(_self, [&](auto &s){
+        } else {
+            _state.emplace(_self, [&](auto &s){
                 // s.fastid = addr.fastid();
                 s.key = addr.tochecksum256();
                 s.value = content.tochecksum256();
@@ -113,11 +175,8 @@ private:
 
     Fast256 getstate(Fast256 addr)
     {
-        states state(_self, _self.value);
-        auto ite = state.find(addr.fastid());
-        if(ite == state.end())
-            return Fast256::Zero();
-
+        auto ite = _state.find( addr.fastid() );
+        if (ite == _state.end()) return Fast256::Zero();
         return Fast256(ite->value);
     }
 
@@ -125,8 +184,7 @@ private:
     void calculateMemory(uint64_t newsize)
     {
         uint64_t realnewsize = (newsize + 31) / 32 * 32;
-        if(realnewsize > _memorysize)
-        {
+        if (realnewsize > _memorysize) {
             print("fuck ", realnewsize);
             _memory->resize(realnewsize);
             _memorysize = realnewsize;
@@ -141,7 +199,7 @@ private:
         auto retlen = len / 2 - 1;
         uint8_t *ret = new uint8_t[retlen];
 
-        for(uint64_t i = offset; i < len; i += 2)
+        for (uint64_t i = offset; i < len; i += 2)
         {
             const char code0 = stringtobyte(code_str[i + 0]);
             const char code1 = stringtobyte(code_str[i + 1]);

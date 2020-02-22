@@ -4,3 +4,4 @@ build
 *.js
 nodeos.log
 dist
+.vscode
