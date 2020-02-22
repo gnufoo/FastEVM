@@ -32,16 +32,13 @@ struct content_type
 
 	void print()
 	{
-		if(type == 0)
-		{
+		if ( type == 0 ) {
 			printhex(&u.value, 1);
-		}
-		else
-		{
+		} else {
 			eosio::print("[");
-			for(auto ite = u.list.begin(); ite != u.list.end(); ite++)
+			for (auto ite = u.list.begin(); ite != u.list.end(); ite++)
 			{
-				if(ite != u.list.begin() && type == 2) 
+				if(ite != u.list.begin() && type == 2)
 					eosio::print(",");
 				ite->print();
 			}
@@ -53,9 +50,11 @@ struct content_type
 	{
 		check(u.list.size() >= len, "can't to bytes for this element.");
 		uint8_t *ret = new uint8_t[len];
-		for(auto i = 0; i < len; i ++)
+
+		for (auto i = 0; i < len; i ++) {
 			ret[i] = u.list[i].u.value;
-		
+		}
+
 		return ret;
 	}
 
@@ -63,27 +62,21 @@ struct content_type
 	{
 		int ret = 0;
 		vector<uint8_t> temp;
-		if(type == 0)
-		{
+		if (type == 0) {
 			temp.push_back(u.value);
 			buff.insert(buff.end(), temp.begin(), temp.end());
 			return 1;
-		}
-		else		
-		{
+		} else {
 			for(auto ite = u.list.begin(); ite != u.list.end(); ite++)
 				ret += ite->encode(temp);
 
-			if(ret > 0x38)
-			{
+			if (ret > 0x38) {
 				buff.push_back(type == 2 ? 0xf8 : 0x80);
 				buff.push_back(ret);
-			}
-			else
-			{
+			} else {
 				buff.push_back(type == 2 ? (0xbf + ret) : (0x80 + ret));
 			}
-			
+
 			buff.insert(buff.end(), temp.begin(), temp.end());
 			return ret;
 		}
@@ -110,8 +103,9 @@ public:
         {
             uint8_t len = (**p) - 0x80;
             content_type ret(1);
-            for(auto i = 0; i < len; i ++)
+            for (auto i = 0; i < len; i ++) {
             	ret.u.list.push_back(content_type(0, (*p)[i + 1]));
+			}
             (*p) += len + 1;
             return ret;
         }
@@ -120,8 +114,9 @@ public:
             uint8_t len_of_str_len = (**p) - 0xb7;
             Fast256 strlen(*(p) + 1, len_of_str_len);
             content_type ret(1);
-            for(auto i = 0; i < strlen.tosize(); i ++)
+            for (auto i = 0; i < strlen.tosize(); i ++) {
             	ret.u.list.push_back(content_type(0, (*p)[i + len_of_str_len + 1]));
+			}
             (*p) += len_of_str_len + strlen.data[0] + 1;
             return ret;
         }
@@ -133,9 +128,9 @@ public:
 
             content_type ret(2);
             uint8_t *list_p = *p;
-            while(list_p < *p + list_len)
+            while (list_p < *p + list_len) {
             	ret.u.list.push_back(parse(&list_p));
-
+			}
             return ret;
         }
         else if((**p) <= 0xff)
@@ -146,8 +141,7 @@ public:
 
             content_type ret(2);
             uint8_t *list_p = *p;
-            while(list_p < *p + listlen.tosize())
-            {
+            while (list_p < *p + listlen.tosize()) {
             	ret.u.list.push_back(parse(&list_p));
             }
             return ret;
@@ -155,7 +149,7 @@ public:
         check(0, "FastRLP parse error.");
         return content_type(0);
 	}
-	
+
 	void print()
 	{
 		data.print();
