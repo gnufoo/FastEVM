@@ -73,8 +73,10 @@ struct content_type
 			if (ret > 0x38) {
 				buff.push_back(type == 2 ? 0xf8 : 0x80);
 				buff.push_back(ret);
+				ret += 2;
 			} else {
-				buff.push_back(type == 2 ? (0xbf + ret) : (0x80 + ret));
+				buff.push_back(type == 2 ? (0xc0 + ret) : (0x80 + ret));
+				ret ++;
 			}
 
 			buff.insert(buff.end(), temp.begin(), temp.end());
@@ -90,6 +92,22 @@ public:
 	{
 		uint8_t *p = bytes;
 	    data = parse(&p);
+	}
+
+	void addstring(uint8_t *content, size_t len)
+	{
+		content_type item(len == 1 ? 0 : 1);
+		if(len == 1)
+			item.u.value = content[0];
+		else
+		{
+			for(auto i = 0; i < len; i ++)
+			{
+				item.u.list.push_back(content_type(0, content[i]));
+			}	
+		}
+		
+		data.u.list.push_back(item);
 	}
 
 	content_type parse(uint8_t **p)

@@ -26,12 +26,24 @@ void FastEVM::raw( string transaction, name caller )
     uint8_t *r = decode.data.u.list[7].tobytes(32);
     uint8_t *s = decode.data.u.list[8].tobytes(32);
 
-    vector<content_type> sliced(&decode.data.u.list[0], &decode.data.u.list[5]);
+    vector<content_type> sliced(&decode.data.u.list[0], &decode.data.u.list[6]);
     decode.data.u.list = sliced;
+    if(v >= 35) {
+        uint8_t recovery = ((v - 35) >> 1);
+        decode.addstring(&recovery, 1);
+        decode.addstring(0, 0);
+        decode.addstring(0, 0);
+    }
+
+    print(" ", decode, " ");
 
     vector<uint8_t> buff;
     int len = decode.data.encode(buff);
     printhex(&buff[0], buff.size());
+
+    FastHash fh;
+    Fast256 hash = fh.keccak256(&buff[0], buff.size());
+    print("keccak256: ", hash.tochecksum256());
     // print(decode);
     /* serialize eth transaction code goes here. */
 }

@@ -10,4 +10,5 @@ eosio-cpp -abigen \
   -o ./dist/fastevm.wasm \
   -I ./include \
   -I ./external/eos_mem_wrapper \
-  -I ./external/evmc
+  -I ./external/evmc \
+  -I ./external/sha3iuf

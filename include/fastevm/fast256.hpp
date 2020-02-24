@@ -40,6 +40,7 @@ public:
 
 	Fast256(uint8_t *src, uint64_t size)
 	{
+		reset();
 		from(src, size);
 	}
 
