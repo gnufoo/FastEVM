@@ -137,7 +137,7 @@ public:
 
     /// @abi action
     [[eosio::action]]
-    void raw( string transaction, name caller, signature sig );
+    void raw( string transaction, name caller );
 
 private:
 
@@ -158,7 +158,7 @@ private:
     Fast256 execute_code( string code, string input, name caller );
     bool execute_op( uint8_t **opcode );
 
-    public_key recover( Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v, signature sig);
+    public_key recover( Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v );
 
     // state
     void set_state( Fast256 addr, Fast256 content );

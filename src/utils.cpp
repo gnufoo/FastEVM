@@ -36,7 +36,7 @@ uint8_t *FastEVM::validate( uint8_t *dest )
     return dest;
 }
 
-eosio::public_key FastEVM::recover(Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v, signature test)
+eosio::public_key FastEVM::recover(Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v)
 {
     ecc_signature ecc;
 
