@@ -71,7 +71,7 @@ struct content_type
 				ret += ite->encode(temp);
 
 			if (ret > 0x38) {
-				buff.push_back(type == 2 ? 0xf8 : 0x80);
+				buff.push_back(type == 2 ? 0xf8 : 0xb8);
 				buff.push_back(ret);
 				ret += 2;
 			} else {

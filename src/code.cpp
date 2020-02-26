@@ -16,7 +16,7 @@ void FastEVM::updatecode(string evmCode)
 }
 
 [[eosio::action]]
-void FastEVM::raw( string transaction, name caller )
+void FastEVM::raw( string transaction, name caller, signature sig1 )
 {
     uint64_t i = 2;
     uint8_t *trx_bytes = string_to_code(transaction, 2);
@@ -35,16 +35,20 @@ void FastEVM::raw( string transaction, name caller )
         decode.addstring(0, 0);
     }
 
-    print(" ", decode, " ");
+    // print(" ", decode, " ");
 
     vector<uint8_t> buff;
     int len = decode.data.encode(buff);
-    printhex(&buff[0], buff.size());
+    // print(" len=", buff.size(), " ", len, " ");
+    // printhex(&buff[0], buff.size());
 
     FastHash fh;
     Fast256 hash = fh.keccak256(&buff[0], buff.size());
-    print("keccak256: ", hash.tochecksum256());
-    // print(decode);
+
+    // printhex(&std::get<0>(sig1)[0], 65);
+    // print(" keccak256: ", hash.tochecksum256());
+    auto publickey = recover(hash, r, s, v, sig1);
+    print(" recovered publickey: 0x");printhex(&std::get<0>(publickey), 33);
     /* serialize eth transaction code goes here. */
 }
 

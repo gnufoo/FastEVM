@@ -12,6 +12,7 @@ public:
 
 		sha3_Update(&context, byte, len);
 		uint8_t *result = (uint8_t *)sha3_Finalize(&context);
+		// eosio::print("keccak256 result: ");printhex(result, 32);
 		Fast256 ret(result, 32);
 		return ret;
 	}

@@ -7,6 +7,7 @@
 #include "fast256.hpp"
 #include "fastrlp.hpp"
 #include "fasthash.hpp"
+#include "BigInt.hpp"
 
 using namespace eosio;
 using namespace std;
@@ -137,7 +138,7 @@ public:
 
     /// @abi action
     [[eosio::action]]
-    void raw( string transaction, name caller );
+    void raw( string transaction, name caller, signature sig );
 
 private:
 
@@ -157,6 +158,8 @@ private:
     // execute
     Fast256 execute_code( string code, string input, name caller );
     bool execute_op( uint8_t **opcode );
+
+    public_key recover( Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v, signature sig);
 
     // state
     void set_state( Fast256 addr, Fast256 content );
