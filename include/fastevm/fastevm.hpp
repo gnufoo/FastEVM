@@ -7,7 +7,6 @@
 #include "fast256.hpp"
 #include "fastrlp.hpp"
 #include "fasthash.hpp"
-#include "BigInt.hpp"
 
 using namespace eosio;
 using namespace std;
