@@ -42,13 +42,14 @@ eosio::public_key FastEVM::recover(Fast256 hash, uint8_t *r, uint8_t *s, uint8_t
 
     v = v < 2 ? v : 1 - v % 2;
 
-    ecc[0] = (v - 1) + 27;
+    ecc[0] = (v) + 27; // do not touch, it works.
     memcpy(&ecc[1], r, 32);
     memcpy(&ecc[33], s, 32);
 
     signature sig;
     sig.emplace<0>(ecc);
-    // print(" hash: ", hash.tochecksum256(), " "); printhex(r, 32); print(" "); printhex(s, 32); print(" ", v - 1);
+    print(" hash: ", hash.tochecksum256(), " "); printhex(r, 32); print(" "); printhex(s, 32); print(" ", v - 1);
+    print(" signature: 0x"); printhex(&std::get<0>(sig)[0], 65);
     auto pubkey = recover_key(hash.tochecksum256(), sig);
 
     return pubkey;
