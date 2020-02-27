@@ -12,4 +12,4 @@ eosio-cpp -abigen \
   -I ./external/eos_mem_wrapper \
   -I ./external/evmc \
   -I ./external/sha3iuf \
-  -I ./external/bigint 
+  -I ./external/uECC  

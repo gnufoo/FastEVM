@@ -7,6 +7,7 @@
 #include "fast256.hpp"
 #include "fastrlp.hpp"
 #include "fasthash.hpp"
+#include "uECC.h"
 
 using namespace eosio;
 using namespace std;
@@ -56,13 +57,49 @@ struct [[eosio::table("state"), eosio::contract("fastevm")]] state_row {
 };
 typedef eosio::multi_index<"state"_n, state_row> state_table;
 
+/**
+ * ## TABLE `account`
+ *
+ * - `{checksum256} address`  - Checksum256 key
+ * - `{uint64_t}    nonce`    - transaction nonce
+ * - `{asset}       balance`  - token balance
+ * - `{checksum256} identifier- account identifier
+ *
+ * ### example
+ *
+ * ```json
+ * {
+ *   "key": "...",
+ *   "value": "..."
+ * }
+ * ```
+ */
+struct [[eosio::table("account"), eosio::contract("fastevm")]] account_row {
+    string      address;
+    uint64_t    nonce;
+    asset       balance;
+    checksum160 identifier;
+    name        account;
+
+    uint64_t    primary_key()   const { return Fast256(sha256(address.c_str(), address.size())).fastid(); }
+    checksum160 by_id()         const { return identifier; }
+    uint64_t    by_acc()        const { return account.value;}
+};
+typedef eosio::multi_index<"account"_n, account_row, 
+    // indexed_by<"byid"_n,  const_mem_fun<account_row, checksum160, &account_row::by_id>>,
+    // indexed_by<"bysig"_n, const_mem_fun<account_row, checksum256, &account_row::by_sig>>,
+    indexed_by<"byacc"_n, const_mem_fun<account_row, uint64_t ,   &account_row::by_acc>>
+> 
+account_table;
 
 class [[eosio::contract("fastevm")]] FastEVM : public contract {
 
 private:
     // local instances of the multi indexes
-    code_table _code;
-    state_table _state;
+    code_table      _code;
+    state_table     _state;
+    account_table   _account;
+    FastHash        _hash;
 
 public:
     using contract::contract;
@@ -77,7 +114,8 @@ public:
     FastEVM( name receiver, name code, eosio::datastream<const char*> ds )
         : contract( receiver, code, ds ),
             _code( get_self(), get_self().value ),
-            _state( get_self(), get_self().value )
+            _state( get_self(), get_self().value ),
+            _account( get_self(), get_self().value )
     {
         _stack = new Fast256[1024];
         memset(_stack, 0, 1024 * sizeof(Fast256));
@@ -139,6 +177,10 @@ public:
     [[eosio::action]]
     void raw( string transaction, name caller );
 
+    /// @abi action
+    [[eosio::action]]
+    void create( name account, string identifier, string address );
+
 private:
 
     Fast256 *_spp;
@@ -158,7 +200,7 @@ private:
     Fast256 execute_code( string code, string input, name caller );
     bool execute_op( uint8_t **opcode );
 
-    public_key recover( Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v );
+    uint64_t recover( Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v );
 
     // state
     void set_state( Fast256 addr, Fast256 content );

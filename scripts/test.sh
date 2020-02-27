@@ -8,7 +8,9 @@
 # cleos get table fastevm fastevm state
 
 # raw
-cleos push action fastevm raw '["0xf8a903844190ab00830186a094a94e6cdae69bbd24be5ff16e28c6bcec0005c91980b844a9059cbb0000000000000000000000003005e5c2f91b3472aac5c35d7cd2ced76e3bd30100000000000000000000000000000000000000000000d3c21bcecceda100000026a0de324d469c13d2c1c9d4040f84e2875b7e5aab4d9155aae3b1214983b3bab9cea022e1d265bca188e8851c401b7173c4c9593a796027a6ba5e4a2282751d591ccb", "eosio"]' -p fastevm
+cleos push action fastevm create '["fastevm", "myETHContract", "0x5F703e2E972cd28A968150CCd2B66F9f9f5D538d"]' -p fastevm
+cleos get table fastevm fastevm account
+cleos push action fastevm raw '["0xf8a903844190ab00830186a094a94e6cdae69bbd24be5ff16e28c6bcec0005c91980b844a9059cbb0000000000000000000000003005e5c2f91b3472aac5c35d7cd2ced76e3bd30100000000000000000000000000000000000000000000d3c21bcecceda100000026a0de324d469c13d2c1c9d4040f84e2875b7e5aab4d9155aae3b1214983b3bab9cea022e1d265bca188e8851c401b7173c4c9593a796027a6ba5e4a2282751d591ccb", "fastevm"]' -p fastevm
 
 
 # cleos set account permission fasttransit1 burn '{"threshold": 1,"keys": [{"key":"EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV", "weight":1}],"accounts": []}' active -p fasttransit1

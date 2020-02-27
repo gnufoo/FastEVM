@@ -69,10 +69,10 @@ public:
         hash = sha256((const char *)&myself, 32);
         auto arr = hash.extract_as_byte_array();
 
-        eosio::print("\n dump fastid: ", hash, "\n");
-        printhex(arr.data(), 32);
-        eosio::print("\n");
-        printhex((uint8_t *)&myself, 32);
+        // eosio::print("\n dump fastid: ", hash, "\n");
+        // printhex(arr.data(), 32);
+        // eosio::print("\n");
+        // printhex((uint8_t *)&myself, 32);
 
 		uint64_t serial = ((uint64_t)arr.data()[0] << 56) +
             ((uint64_t)arr.data()[4] << 48) +
@@ -95,9 +95,27 @@ public:
 		return ret;
 	}
 
+	checksum160 tochecksum160()
+	{
+		checksum160 ret;
+		memcpy( (char*)ret.data(), data, 20);
+		return ret;
+	}
+
 	size_t tosize()
 	{
 		return data[0];
+	}
+
+	std::string tostring(int offset)
+	{
+		char finalhash[67];
+		char hexval[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+		for(int i = 3; i >= 0; i --)
+		for(int j = 0; j < 16; j ++)
+			finalhash[2 + 16 * (3 - i) + j] = hexval[(data[i] >> (60 - j * 4)) & 0xf];;
+		finalhash[66] = '\0';finalhash[offset] = '0'; finalhash[offset + 1] = 'x';
+		return std::string(finalhash + offset);
 	}
 
 	Fast256 fromchecksum256( checksum256 src )

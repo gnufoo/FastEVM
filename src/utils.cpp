@@ -36,7 +36,7 @@ uint8_t *FastEVM::validate( uint8_t *dest )
     return dest;
 }
 
-eosio::public_key FastEVM::recover(Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v)
+uint64_t FastEVM::recover(Fast256 hash, uint8_t *r, uint8_t *s, uint8_t v)
 {
     ecc_signature ecc;
 
@@ -48,11 +48,14 @@ eosio::public_key FastEVM::recover(Fast256 hash, uint8_t *r, uint8_t *s, uint8_t
 
     signature sig;
     sig.emplace<0>(ecc);
-    print(" hash: ", hash.tochecksum256(), " "); printhex(r, 32); print(" "); printhex(s, 32); print(" ", v - 1);
-    print(" signature: 0x"); printhex(&std::get<0>(sig)[0], 65);
     auto pubkey = recover_key(hash.tochecksum256(), sig);
-
-    return pubkey;
+    vector<uint8_t> compressed( std::begin(std::get<0>(pubkey)), std::end(std::get<0>(pubkey)));
+    uint8_t public_key[65];
+    public_key[0] = 0x4; // 04 prefix
+    uECC_decompress(compressed.data(), public_key + 1);
+    auto ret = _hash.keccak256(public_key + 1, 64).tostring(24);
+    
+    return Fast256(eosio::sha256(ret.c_str(), ret.size())).fastid();
 }
 
 const uint8_t FastEVM::string_to_byte( char c )

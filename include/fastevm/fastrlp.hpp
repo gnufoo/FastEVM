@@ -93,6 +93,7 @@ public:
 		uint8_t *p = bytes;
 	    data = parse(&p);
 	}
+	FastRLP(uint8_t type) : data(type) {}
 
 	void addstring(uint8_t *content, size_t len)
 	{
